@@ -1,6 +1,6 @@
 ---
 name: maitre-booking
-description: Find, claim, view, and cancel Maître restaurant reservations. Use for Maître tables or when the user selects the Maître World ID benefit and wants to claim or book it.
+description: Set up a Maître account and find, claim, view, or cancel restaurant reservations. Use for Maître sign-in, tables, or claiming the Maître World ID benefit.
 ---
 
 # Maître bookings
@@ -38,8 +38,10 @@ must be resolved before trying another route.
    A clear request to book those exact details already supplies approval. Omit
    `guest_name` to use their Google account name, or pass an override they request.
    Ask for a name only if the tool reports that one is missing or unavailable.
-3. Call `claim_seat` with the selected `seat_id` and optional `guest_name`.
-   Follow the authentication or verification flow below when required.
+3. If this conversation has not established Maître access, check `my_reservations`
+   and guide sign-in below before submitting the claim. Then call `claim_seat`
+   with the selected `seat_id` and optional `guest_name`. Follow the World ID
+   verification flow below when required.
 4. Report the returned restaurant, local date/time, party size, actual guest name,
    claim reference, and status. `pending` means the claim was submitted to Maître
    and restaurant confirmation is outstanding. Do not call it a confirmed
@@ -52,12 +54,38 @@ do not automatically submit another claim or book a different table.
 
 ## Sign-in and World ID verification
 
-Maître MCP sign-in uses Google through Supabase. Use the host's actual OAuth
-Connect/Reconnect controls on an authentication challenge. Website sign-in and
-the World ID plugin's connection do not authorize this MCP connection. Never
-claim a login popup opened unless the host provides evidence. After login, use
-`my_reservations` to check access, with at most one additional read-only check
-after a supported reconnect. Do not use booking or cancellation to test login.
+Booking requires a Maître account created by signing in with Google, access for
+this agent to that account, and World ID connected to that same Maître account.
+Connecting the World ID plugin alone does not complete these steps. Browsing
+tables is public; do not require account setup just to browse.
+
+When Maître sign-in is needed, explain: "First, sign in to Maître with Google.
+This creates your account if you're new. Then we'll connect World ID to that
+account and continue with your table." Skip steps already confirmed complete.
+Describe this as connecting their Maître account, without MCP server terminology.
+Never ask for passwords or tokens in chat.
+
+- Start the host's available Maître Connect/Reconnect flow. Its browser flow
+  includes creating or signing in to Maître with Google, then allowing the agent access.
+  Show the actual authorization URL as **Connect Maître** when one is returned.
+- If native connection controls are unavailable but this Codex environment has
+  a local shell and supports `codex mcp login`, run `codex mcp login maitre` on
+  the user's behalf (use the actual configured server name if different).
+  Show its returned authorization link and wait for browser completion. Do not
+  merely hand the user a terminal command when you can start login yourself.
+- If you cannot start either connection flow, give a concrete first step:
+  [Create or sign in to your Maître account](https://www.maitre.fun/auth.html).
+  Tell them to choose **Sign in with Google**, then return to chat. Explain that
+  the plugin's Connect/Reconnect step is still needed to authorize this agent;
+  website sign-in alone does not connect it. Do not invent an OAuth URL or say a
+  popup opened without evidence.
+
+After login, use `my_reservations` to check access, with at most one additional
+read-only check after a supported reconnect. Preserve the selected table and
+existing booking approval while the user signs in. Resume in the current chat
+when supported; suggest a new chat only if the host cannot reload the connection.
+Do not use booking or cancellation to test login, and do not claim the agent is
+connected merely because the website is signed in.
 
 `claim_seat` may return `verification_required` with `verification_url` and
 `handoff`, even when the tool marks the result as an error. This means MCP
