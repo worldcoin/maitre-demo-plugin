@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "maitre": {
+      "type": "http",
+      "url": "https://www.maitre.fun/mcp"
+    }
+  }
+}

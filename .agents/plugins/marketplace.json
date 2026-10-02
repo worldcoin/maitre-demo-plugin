@@ -1,0 +1,20 @@
+{
+  "name": "maitre-demo",
+  "interface": {
+    "displayName": "Maître Demo"
+  },
+  "plugins": [
+    {
+      "name": "maitre",
+      "source": {
+        "source": "local",
+        "path": "./plugins/maitre"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
