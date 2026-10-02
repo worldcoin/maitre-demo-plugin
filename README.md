@@ -14,7 +14,7 @@ as the source in the Plugins Directory and install **Maître**. If the source
 does not appear, restart the desktop app after opening the repository.
 Start a new conversation after installation to load the tools and skill.
 
-Once these files are pushed to GitHub, give a coding agent this prompt:
+Give a coding agent this prompt:
 
 ```text
 Install the Maître plugin from https://github.com/worldcoin/maitre-demo-plugin
@@ -22,6 +22,13 @@ Install the Maître plugin from https://github.com/worldcoin/maitre-demo-plugin
 
 The repository marketplace is `.agents/plugins/marketplace.json`; its plugin
 is `maitre`, under `plugins/maitre`.
+
+When installing on the user's behalf, complete setup by starting Maître's
+Connect flow. If using the Codex commands below, run the login command too and
+show its returned browser link; do not stop by asking the user to run it manually.
+Let the user complete Google sign-in and consent, then check access with
+`my_reservations` when the tools are available. Report installation and account
+connection separately if sign-in has not completed.
 
 For Codex CLI, install from a local checkout:
 
@@ -31,7 +38,7 @@ codex plugin add maitre@maitre-demo
 codex mcp login maitre
 ```
 
-Or, after pushing the plugin files, use
+Or use
 `codex plugin marketplace add worldcoin/maitre-demo-plugin` for the first command.
 Complete the browser authorization and start a new session.
 
@@ -67,11 +74,20 @@ request, it uses the World ID listing, then Maître's tools to select and claim
 a table. The benefit is access to tables for verified humans; a free meal or
 discount is not implied.
 
-Maître has its own Google/Supabase OAuth connection. If the account is not yet
-verified, the agent displays a **Connect World ID** link and waits while you
-verify using the same Google account. It then retries the selected booking.
-Connecting the World ID plugin alone does not authorize Maître. Cross-app
-credential delegation is not implemented by the current backend.
+First-time booking has three steps:
+
+1. **Create or sign in to Maître with Google.** The plugin's connection flow
+   opens Google sign-in for new users. If that flow is unavailable, start at
+   [Maître sign-in](https://www.maitre.fun/auth.html).
+2. **Allow the plugin to use that account.** Signing in on the website alone
+   does not authorize the agent; complete the plugin's Connect/Reconnect flow.
+3. **Connect World ID to that Maître account.** When verification is needed,
+   the agent provides a **Connect World ID** link, waits while you verify with
+   the same Google account, then retries the selected booking.
+
+Existing users skip completed steps. Connecting the World ID plugin alone does
+not create or authorize a Maître account. Cross-app credential delegation is not
+implemented by the current backend.
 
 A successful claim currently returns **pending restaurant confirmation**.
 The agent must distinguish this from a confirmed restaurant reservation.
@@ -99,6 +115,8 @@ Maître backends enforce authentication and authorization.
 - Ask for current tables: use live `list_seats` results; no invented availability.
 - Follow a World ID Maître listing: use Maître's MCP to browse and claim.
 - Select a table: use the Google account name unless you request an override.
+- Start without a Maître account: receive a clickable Google sign-in route,
+  authorize the plugin, then connect World ID using that same account.
 - Verify an unverified account: show the returned link, wait, then retry the
   approved claim. Stop waiting on timeout or error.
 - Inspect a submitted claim: report its reference and pending status accurately.

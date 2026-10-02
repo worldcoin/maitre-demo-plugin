@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "maitre",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Find and claim restaurant tables for verified humans with Maître and World ID.",
   "author": {
     "name": "Tools for Humanity"
