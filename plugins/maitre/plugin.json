@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "maitre",
+  "version": "0.1.0",
+  "description": "Find and claim restaurant tables for verified humans with Maître and World ID.",
+  "author": {
+    "name": "Tools for Humanity"
+  },
+  "homepage": "https://www.maitre.fun",
+  "repository": "https://github.com/worldcoin/maitre-demo-plugin"
+}

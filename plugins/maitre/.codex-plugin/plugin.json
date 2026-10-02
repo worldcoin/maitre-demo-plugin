@@ -1,0 +1,33 @@
+{
+  "name": "maitre",
+  "version": "0.1.0",
+  "description": "Find and claim restaurant tables for verified humans with Maître and World ID.",
+  "author": {
+    "name": "Tools for Humanity"
+  },
+  "homepage": "https://www.maitre.fun",
+  "repository": "https://github.com/worldcoin/maitre-demo-plugin",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Maître",
+    "shortDescription": "Find and claim restaurant tables with World ID.",
+    "longDescription": "Browse San Francisco restaurant tables, claim a table, and manage your Maître reservations. Works with the World ID plugin to follow up on the Maître benefit. Booking requires separate Maître sign-in and World ID verification. A submitted claim may still be pending restaurant confirmation.",
+    "developerName": "Tools for Humanity",
+    "category": "Productivity",
+    "capabilities": [
+      "OAuth",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://www.maitre.fun",
+    "defaultPrompt": [
+      "Help me claim the Maître World ID benefit.",
+      "Find a table for two in San Francisco.",
+      "Show my Maître reservations."
+    ],
+    "brandColor": "#1D1D1F",
+    "composerIcon": "./assets/maitre.png",
+    "logo": "./assets/maitre.png"
+  }
+}
