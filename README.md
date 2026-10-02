@@ -44,9 +44,15 @@ and [plugin packaging](https://developers.openai.com/plugins/build/plugins).
 
 ## Use with World ID
 
-Install the World ID plugin separately. For the current demo, use its **sandbox**
-branch: Maître was listed in the sandbox benefit catalog on October 2, 2026.
-Installing this plugin does not install World ID or change its environment.
+Install the production World ID plugin (`world-id`) from its `main` branch
+separately. It uses `https://auth.world.org/mcp`. Installing this plugin does
+not install World ID or change its environment.
+
+For discovery through World ID, Maître needs an approved, published listing in
+the production benefit catalog. An empty catalog does not prevent direct Maître
+booking, but the agent must not claim a listed offer exists or substitute the
+sandbox catalog. Maître's Supabase World ID provider must also use the production
+issuer, `https://auth.world.org`.
 
 Try:
 

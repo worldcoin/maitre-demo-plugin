@@ -12,10 +12,11 @@ availability and reservations.
 ## World ID benefits
 
 For a request about the Maître World ID benefit, reuse the selected World ID
-catalog listing from the conversation. If it is missing, use the connected
-World ID plugin's `get_benefits` tool. Keep its configured environment; do not
-switch catalogs to find an offer. If discovery is unavailable or Maître is not
-listed, say so; direct Maître browsing remains available.
+production catalog listing from the conversation. If it is missing, use the
+production World ID plugin's `get_benefits` tool at `https://auth.world.org/mcp`.
+Do not substitute the sandbox catalog or treat its listings as production offers.
+If the production connection or catalog is unavailable, or Maître is not listed,
+say so; direct Maître browsing remains available.
 
 Use the listing's actual terms. Access to tables does not imply a discount or a
 free meal. A listing or successful World ID account check does not establish
