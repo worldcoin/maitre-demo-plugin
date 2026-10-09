@@ -1,6 +1,6 @@
 ---
 name: maitre-booking
-description: Find, claim, view, and cancel Maître restaurant reservations. Use for Maître tables or when the user selects the Maître World ID benefit and wants to claim or book it.
+description: Find, claim, view, and cancel Maître restaurant reservations. Use for Maître tables, requests to book a table with World ID, or when the user selects the Maître World ID benefit and wants to claim or book it.
 ---
 
 # Maître bookings
@@ -8,6 +8,27 @@ description: Find, claim, view, and cancel Maître restaurant reservations. Use 
 Maître sets aside restaurant tables for verified humans in San Francisco. Use
 this plugin's connected Maître MCP tools at `https://www.maitre.fun/mcp` for live
 availability and reservations.
+
+## Discover tools before declaring them unavailable
+
+For Maître restaurant requests, including "book me a table with World ID":
+
+1. Look for this plugin's connected Maître MCP tools.
+2. If they are not visible, use the host's tool/plugin discovery, when available,
+   to search for "Maître restaurant reservations" or "list_seats" before saying
+   the tools are unavailable.
+3. For availability or booking requests, call `list_seats` once available. This
+   read-only availability call does not require Maître sign-in or browser access.
+   Use returned availability and ask for any missing booking preferences; do not
+   infer a selected table or authorization to claim one.
+4. Do not infer that MCP is unavailable because tools were not initially visible
+   or browser access was denied. If discovery is unavailable, finds no usable
+   Maître connection, or returns an error, explain that specific limitation and
+   any supported connection or installation steps. Resume with MCP when connected.
+
+Use the website for authorization, an explicitly requested website flow, or when
+no usable MCP route exists; explain the reason for a fallback. An uncertain write
+must be resolved before trying another route.
 
 ## World ID benefits
 
@@ -22,12 +43,6 @@ Use the listing's actual terms. Access to tables does not imply a discount or a
 free meal. A listing or successful World ID account check does not establish
 Maître eligibility, authorize a booking, or confirm redemption. Never pass World
 ID tokens, proofs, or account identifiers to Maître as authorization.
-
-If Maître tools are missing, use the host's tool/plugin discovery to find the
-connection. Explain any required setup and resume with MCP when connected. Use
-the website for authorization, an explicitly requested website flow, or when no
-usable MCP route exists; explain the reason for a fallback. An uncertain write
-must be resolved before trying another route.
 
 ## Browse and claim
 
