@@ -96,6 +96,12 @@ Maître backends enforce authentication and authorization.
 
 ## Demo checks
 
+- Ask "book me a table with World ID": discover Maître tools if needed and use
+  live `list_seats` results before asking the user to select a table.
+- With browser access denied and Maître MCP available: still use `list_seats`.
+- With Maître tools initially hidden: use host discovery before declaring them
+  unavailable. If discovery is absent or fails, explain the specific limitation.
+- Ask only to connect World ID: do not browse or claim restaurant tables.
 - Ask for current tables: use live `list_seats` results; no invented availability.
 - Follow a World ID Maître listing: use Maître's MCP to browse and claim.
 - Select a table: use the Google account name unless you request an override.
