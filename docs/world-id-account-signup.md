@@ -1,4 +1,4 @@
-# World ID account signup
+# Google or World ID account signup
 
 Status: implementation handoff for a draft PR. This repository contains plugin
 manifests and agent instructions, not the Maître backend. No MCP handler, database
@@ -7,14 +7,38 @@ end-to-end verification are required before changing the booking skill.
 
 ## Outcome and scope
 
-An agent can request `create_account` and use Maître's normal MCP OAuth connection
-to sign in with World ID. Supabase creates or resolves the Auth user; the tool
-idempotently finishes application profile setup. Google is optional for new
-accounts. XAA, token delegation from the World ID plugin, and a custom device-flow
-credential system are outside this implementation.
+Maître's normal MCP OAuth connection offers **Continue with Google** and
+**Continue with World ID** for both signup and returning users. Either provider
+creates or resolves the Supabase Auth user. Neither requires signing in with the
+other provider to create an account or authorize the MCP connection. XAA, token
+delegation from the World ID plugin, and a custom device-flow credential system
+are outside this implementation.
 
-Keep the existing Google login and World verification recovery available during
-rollout. Signing up does not authorize a reservation.
+Supabase provisions the Auth user during its provider callback; a separate
+`create_account` tool is not required. Reuse existing profile provisioning. Only
+add the optional idempotent tool below if application onboarding needs it.
+
+Google login remains a permanent supported option. Keep the World verification
+flow for Google users when a booking requires it. Signing up through either
+provider does not authorize a reservation.
+
+## User flow
+
+1. The agent starts the Maître MCP connection through the host's OAuth controls.
+2. Maître's authorization page offers Google and World ID side by side.
+3. The person chooses and completes one provider's sign-in. For World-first
+   signup, require at least one QR scan and World proof approval. Verify the
+   deployed IDP's supported proof controls; fresh login alone can allow passkeys
+   and does not guarantee a QR scan. Do not claim this requirement works until
+   an end-to-end test confirms it.
+4. Supabase's provider callback creates or resolves the Auth user. Maître
+   provisions the application profile and resumes the pending MCP authorization.
+5. The person approves agent access; the host completes its code exchange and
+   stores the Maître credential. The agent continues with authenticated tools.
+6. A Google-only user can use their account without linking World. If they select
+   a booking requiring World verification, run the existing World linking flow
+   against that same account before accepting the booking. World sign-in must
+   also satisfy the backend's assurance policy before granting verified access.
 
 ## Observed deployment
 
@@ -36,7 +60,12 @@ Read-only public discovery checks on November 2, 2026 returned:
 Metadata establishes endpoint discovery, not that client registration succeeds or
 that World is configured as a Supabase provider. The installed Supabase connector
 did not expose project/query tools in the authoring chat; provider configuration,
-schema, migrations, and deployed function source have not been inspected.
+schema, migrations, and deployed function source have not been inspected. The
+user subsequently confirmed existing World-only Maître users, with a Dashboard
+screenshot showing World provider entries. World-based provisioning already
+exists; inspect and reuse it rather than assuming the provider must be created.
+The screenshot does not establish which entry point those users used or the
+complete linked-identity list for each user.
 
 ## Backend implementation
 
@@ -44,21 +73,24 @@ schema, migrations, and deployed function source have not been inspected.
    application profile table, Auth-user triggers, verification mapping, and RLS.
    Reuse their conventions rather than introducing a second MCP server or a new
    profile table before inspecting the existing schema.
-2. Add World ID sign-in to the existing authorization UI, using provider
-   `custom:world-id`. Save the pending downstream OAuth authorization ID across
+2. Offer Google and World ID sign-in in the existing authorization UI. Use the
+   existing `google` provider and inspect/reuse the deployed World provider
+   identifier (`custom:world-id` below is a proposed name, not an observed value).
+   Save the pending downstream OAuth authorization ID across
    upstream sign-in. Use a fixed, allowlisted application callback, exchange the
    Supabase login code there, and resume the original authorization request and
    consent. Never accept an arbitrary return URL from a tool argument.
-3. Keep both authorization-code exchanges separate: World to Supabase, and
-   Supabase to the MCP host. Each has its own code, callback, state and PKCE
+3. Keep both authorization-code exchanges separate: the selected upstream
+   provider to Supabase, and Supabase to the MCP host. Each has its own code, callback, state and PKCE
    verifier. The host stores Maître credentials outside model context.
 4. Require a valid Maître MCP access token before running `create_account`.
    Unauthenticated requests use the existing HTTP OAuth challenge and protected
    resource metadata. Verify issuer, audience, expiry and the applicable
    client/resource permissions using the current authentication middleware.
-5. Resolve the user UUID from that verified authentication context. Require a
-   trusted linked World identity for this signup path. A Google-only session must
-   link World through the existing verification flow or complete World sign-in.
+5. Resolve the user UUID from that verified authentication context. Accept either
+   Google or World authentication for account/profile setup. Do not require a
+   linked World identity for Google signup or MCP connection. Gate only operations
+   that require World verification through the existing trusted verification flow.
    Do not authorize using user-editable `user_metadata` or caller-supplied IDs.
 6. Insert the application profile once, keyed by Supabase user UUID. Use the
    existing schema and a unique constraint with `ON CONFLICT DO NOTHING`, followed
@@ -72,7 +104,7 @@ schema, migrations, and deployed function source have not been inspected.
    authenticated to the existing account; retain reservations and UUID. An identity
    already linked elsewhere is a conflict to resolve, not permission to merge.
 
-Proposed tool contract (to register in the existing backend):
+Optional profile-onboarding tool contract (only if needed by the existing backend):
 
 ```ts
 type CreateAccountInput = {
@@ -147,6 +179,10 @@ Open the [Maître project](https://supabase.com/dashboard/project/axvzindzhqiuin
    provider Admin API with a compatible pinned SDK. Enable the provider only after
    the World callback and client authentication method match. Verify actual
    upstream requests contain S256 PKCE and no added `profile` or `offline_access`.
+   Keep the existing Google provider enabled with working credentials and its
+   registered Supabase callback. Both provider buttons must resume the same
+   pending MCP authorization. No provider migration is needed merely to add the
+   second option to the authorization UI.
 2. In **Authentication → URL Configuration**, allowlist the exact application
    callback implemented by the backend. This callback is distinct from the
    Supabase callback registered at World and the host's downstream OAuth callback.
@@ -173,7 +209,13 @@ Open the [Maître project](https://supabase.com/dashboard/project/axvzindzhqiuin
 
 - Fresh World-only signup, including no email: one `auth.users` row, one World
   provider identity and one application profile. Confirm a read resolves to the
-  same Supabase UUID through the authorized MCP connection.
+  same Supabase UUID through the authorized MCP connection. Confirm the first
+  World signup requires a QR scan, including when an IDP session or passkey exists.
+- Fresh Google-only signup: one Auth user and profile, with a working MCP
+  connection and no World-linking requirement. World-gated bookings remain blocked
+  until explicit verification succeeds against that account.
+- Returning Google and World users: both provider buttons resolve their existing
+  account and resume agent authorization without creating duplicates.
 - Repeat login and concurrent `create_account` calls: the same UUID and profile,
   with the existing display name preserved.
 - Existing Google account: explicit World linking preserves UUID and reservations;
@@ -186,8 +228,9 @@ Open the [Maître project](https://supabase.com/dashboard/project/axvzindzhqiuin
   requested only when needed. Reconnect, refresh and logout follow existing MCP
   behavior. World logout does not automatically revoke Maître sessions.
 - After staging passes, deploy the backend and provider settings together. Update
-  this plugin's booking skill and README to describe World-primary signup only
-  after the live flow works. Retain the Google/verification fallback for rollback.
+  this plugin's booking skill and README to describe both signup options only
+  after the live flows work. Keep Google supported and retain World-verification
+  recovery for Google accounts and rollback.
 
 No live signup, booking, provider mutation or database write was performed while
 preparing this handoff. Public discovery checks are not an end-to-end Auth test.

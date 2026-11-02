@@ -73,8 +73,8 @@ verify using the same Google account. It then retries the selected booking.
 Connecting the World ID plugin alone does not authorize Maître. Cross-app
 credential delegation is not implemented by the current backend.
 
-The proposed World ID primary-signup flow and its Supabase setup checklist are
-in [World ID account signup](docs/world-id-account-signup.md). That work excludes
+The proposed Google-or-World signup flow and its Supabase setup checklist are
+in [Account signup](docs/world-id-account-signup.md). That work excludes
 XAA and is not deployed; the Google sign-in flow above remains current.
 
 A successful claim currently returns **pending restaurant confirmation**.
