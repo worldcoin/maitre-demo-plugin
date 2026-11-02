@@ -57,15 +57,14 @@ Read-only public discovery checks on November 2, 2026 returned:
 | World scopes advertised | `openid` |
 | World subject type / signing algorithm / PKCE | pairwise / RS256 / S256 |
 
-Metadata establishes endpoint discovery, not that client registration succeeds or
-that World is configured as a Supabase provider. The installed Supabase connector
-did not expose project/query tools in the authoring chat; provider configuration,
-schema, migrations, and deployed function source have not been inspected. The
-user subsequently confirmed existing World-only Maître users, with a Dashboard
-screenshot showing World provider entries. World-based provisioning already
-exists; inspect and reuse it rather than assuming the provider must be created.
-The screenshot does not establish which entry point those users used or the
-complete linked-identity list for each user.
+Supabase project access subsequently became available. Read-only inspection
+confirmed the active project is `maitre`, with 16 `custom:world` identities and
+14 `google` identities. These are identity counts, not distinct-user counts.
+The project has no deployed Supabase Edge Functions, so this connection does not
+provide the external Maître backend source. Reuse the existing `custom:world`
+provider; do not introduce `custom:world-id`. Provider settings, application
+schema and the complete MCP authorization path remain unverified. Public metadata
+does not establish that client registration succeeds.
 
 ## Backend implementation
 
@@ -75,7 +74,7 @@ complete linked-identity list for each user.
    profile table before inspecting the existing schema.
 2. Offer Google and World ID sign-in in the existing authorization UI. Use the
    existing `google` provider and inspect/reuse the deployed World provider
-   identifier (`custom:world-id` below is a proposed name, not an observed value).
+   identifier `custom:world`, confirmed in `auth.identities`.
    Save the pending downstream OAuth authorization ID across
    upstream sign-in. Use a fixed, allowlisted application callback, exchange the
    Supabase login code there, and resume the original authorization request and
@@ -156,15 +155,14 @@ working provider settings and Google access while reviewing them.
 
 Open the [Maître project](https://supabase.com/dashboard/project/axvzindzhqiuinvwxxgw).
 
-1. In **Authentication → Providers**, inspect any existing World provider. Reuse
-   its identifier in backend code if it already implements the intended OIDC
-   contract; do not create a duplicate identity namespace casually. Otherwise add
-   an **Auto-discovery (OIDC)** provider with identifier `custom:world-id`:
+1. In **Authentication → Providers**, inspect the existing `custom:world`
+   provider and reuse it. Keep the existing client and identity sector. Compare
+   its settings against the target below; do not create a second World provider:
 
    ```json
    {
      "provider_type": "oidc",
-     "identifier": "custom:world-id",
+     "identifier": "custom:world",
      "name": "World ID",
      "issuer": "https://auth.world.org",
      "scopes": ["openid"],
